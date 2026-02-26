@@ -1,24 +1,79 @@
 # mclaude
 
-> 阿里云 AI 编程计划适配工具，一条命令快速切换多种大模型后端。
+> 阿里云 AI Coding Plan适配工具，一条命令快速切换多种大模型后端。
+
+---
+
+## 前置条件
+
+本工具预设你已安装 **Claude Code**。如尚未安装，请先执行以下命令：
+
+**macOS / Linux / WSL**
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+**Windows PowerShell**
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
 
 ---
 
 ## 功能
 
-- 专为**阿里云 AI 编程计划**设计，完美适配其多模型服务
+- 专为**阿里云 Coding Plan**设计，完美适配其多模型服务
 - 一条命令快速切换 AI 后端（Qwen / GLM / Kimi / MiniMax）
 - 自动注入 `ANTHROPIC_BASE_URL` 与 `ANTHROPIC_AUTH_TOKEN`
 - **完全屏蔽** `~/.claude/settings.json` 中的原有配置，避免冲突
 
 ---
 
+## 对比官方教程
+
+阿里云官方教程的做法是将环境变量**永久写入系统**，这会覆盖 Claude Code 原有的配置，导致无法再使用原生的 Anthropic 服务。
+
+mclaude 只在**启动进程时**临时注入环境变量，不修改任何系统或用户级配置，因此：
+
+- 切换到阿里云模型：`mclaude qwen`
+- 回到原本的 Claude Code 配置：`mclaude`（不加任何参数）
+
+两种模式随时切换，互不干扰。
+
+---
+
 ## 安装
 
+脚本可以放在任意位置，安装时只需将软链接或别名指向脚本的实际路径即可。
+
+### macOS / Linux
+
 ```bash
-chmod +x ~/.claude/mclaude.sh
-sudo ln -sf ~/.claude/mclaude.sh /usr/local/bin/mclaude
+# 赋予执行权限
+chmod +x /path/to/mclaude.sh
+
+# 将实际路径软链接到 PATH 下（示例放在 ~/tools/ 目录）
+sudo ln -sf /path/to/mclaude.sh /usr/local/bin/mclaude
 ```
+
+### Windows（PowerShell）
+
+**1. 允许执行本地脚本**（如已设置可跳过）
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+**2. 创建永久别名**，将脚本实际路径写入 PowerShell 配置文件
+
+```powershell
+# 将下面路径替换为 mclaude.ps1 的实际位置
+Add-Content $PROFILE "`nSet-Alias mclaude 'C:\path\to\mclaude.ps1'"
+```
+
+重启 PowerShell 后生效。
 
 ---
 
@@ -28,26 +83,32 @@ sudo ln -sf ~/.claude/mclaude.sh /usr/local/bin/mclaude
 mclaude <模型> [claude 原生参数...]
 ```
 
-| 命令 | 模型 |
+| 命令 | 效果 |
 |------|------|
-| `mclaude qwen` | Qwen |
-| `mclaude glm` | GLM |
-| `mclaude kimi` | Kimi |
-| `mclaude minimax` | MiniMax |
-| `mclaude` | 不切换，使用系统默认配置 |
+| `mclaude qwen` | 固定使用 Qwen 模型启动 |
+| `mclaude glm` | 固定使用 GLM 模型启动 |
+| `mclaude kimi` | 固定使用 Kimi 模型启动 |
+| `mclaude minimax` | 固定使用 MiniMax 模型启动 |
+| `mclaude aliyun` | 注入阿里云凭证，不固定模型，在 Claude Code 内用 `/model` 切换 |
+| `mclaude` | 不注入任何配置，使用系统默认配置启动 |
 
 **示例**
 
 ```bash
 mclaude kimi
 mclaude qwen --dangerously-skip-permissions
+mclaude aliyun       # 启动后在 Claude Code 内用 /model 自由切换所有模型
 ```
+
+> **`mclaude aliyun` 的原理**：阿里云的所有模型共用同一个 `ANTHROPIC_BASE_URL` 和 `ANTHROPIC_AUTH_TOKEN`，因此只需在启动时注入一次凭证，之后 Claude Code 内部的 `/model` 命令即可在 Qwen / GLM / Kimi / MiniMax 之间自由切换，无需退出重启。
 
 ---
 
 ## 配置
 
-编辑 `~/.claude/mclaude.sh` 顶部的变量：
+### macOS / Linux
+
+编辑 `mclaude.sh` 顶部的变量：
 
 ```bash
 ANTHROPIC_BASE_URL="https://..."      # API 地址
@@ -57,6 +118,20 @@ MODEL_QWEN="qwen-coder-plus"
 MODEL_GLM="glm-4"
 MODEL_KIMI="kimi-k2.5"
 MODEL_MINIMAX="abab6.5-chat"
+```
+
+### Windows（PowerShell）
+
+编辑 `mclaude.ps1` 顶部的变量：
+
+```powershell
+$ANTHROPIC_BASE_URL  = "https://..."   # API 地址
+$ANTHROPIC_AUTH_TOKEN = "sk-..."       # API Key
+
+$MODEL_QWEN    = "qwen-coder-plus"
+$MODEL_GLM     = "glm-4"
+$MODEL_KIMI    = "kimi-k2.5"
+$MODEL_MINIMAX = "abab6.5-chat"
 ```
 
 ---
