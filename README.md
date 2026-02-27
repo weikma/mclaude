@@ -89,7 +89,6 @@ mclaude <模型> [claude 原生参数...]
 | `mclaude glm` | 固定使用 GLM 模型启动 |
 | `mclaude kimi` | 固定使用 Kimi 模型启动 |
 | `mclaude minimax` | 固定使用 MiniMax 模型启动 |
-| `mclaude aliyun` | 注入阿里云凭证，不固定模型，在 Claude Code 内用 `/model` 切换 |
 | `mclaude` | 不注入任何配置，使用系统默认配置启动 |
 
 **示例**
@@ -97,10 +96,7 @@ mclaude <模型> [claude 原生参数...]
 ```bash
 mclaude kimi
 mclaude qwen --dangerously-skip-permissions
-mclaude aliyun       # 启动后在 Claude Code 内用 /model 自由切换所有模型
 ```
-
-> **`mclaude aliyun` 的原理**：阿里云的所有模型共用同一个 `ANTHROPIC_BASE_URL` 和 `ANTHROPIC_AUTH_TOKEN`，因此只需在启动时注入一次凭证，之后 Claude Code 内部的 `/model` 命令即可在 Qwen / GLM / Kimi / MiniMax 之间自由切换，无需退出重启。
 
 ---
 
